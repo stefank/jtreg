@@ -125,7 +125,6 @@ import static com.sun.javatest.regtest.Main.EXIT_TEST_ERROR;
 import static com.sun.javatest.regtest.Main.EXIT_TEST_FAILED;
 import static com.sun.javatest.regtest.tool.Option.ArgType.*;
 
-
 /**
  * Main entry point to be used to access jtreg.
  */
@@ -1292,6 +1291,16 @@ public class Tool {
         testStats = new TestStats();
         boolean foundEmptyGroup = false;
 
+        Path monitorDirectory = workDirArg.resolve("scratch");
+
+        ResourceMonitor monitor;
+
+        try {
+            monitor = new ResourceMonitor(monitorDirectory);
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+
         for (RegressionTestSuite ts: testManager.getTestSuites()) {
 
             if (multiRun && (verbose != null && verbose.multiRun))
@@ -1365,6 +1374,8 @@ public class Tool {
                 out.println("Results written to " + canon(workDirArg.toFile()));
             }
         }
+
+        monitor.disengage();
 
         return (testStats.counts[Status.ERROR] > 0 ? EXIT_TEST_ERROR
                 : testStats.counts[Status.FAILED] > 0 ? EXIT_TEST_FAILED
